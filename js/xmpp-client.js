@@ -22,7 +22,7 @@ function getMessageId(){
 }
 
 function sendToServer(stanza, requestTag, callback){
-    log("Sent: " + stanza);
+    log("Sent", stanza);
     xmppClient.socket.send(stanza);
 }
 
@@ -77,25 +77,25 @@ var xmppClient={
         };
         
         this.socket.onmessage = function (event) {            
-            log("Received: " + event.data);
+            log("Received", event.data);
             parser.parseServerResponse(event.data);
         };
         
         this.socket.onerror = function (event) {            
-            console.log(event);
+            log("error", event);
         };
     },    
     start:function(){
-        var data = this.generateStanza("open",{"xmlns":"urn:ietf:params:xml:ns:xmpp-framing", "to":"ejabberd.local", "version":"1.0"});
+        var data="<open xmlns='urn:ietf:params:xml:ns:xmpp-framing' to='ejabberd.local' version='1.0'/>";
         sendToServer(data);
     },
     auth:function(){
         var auth = Base64.encode(JID + "\u0000" + USERNAME + "\u0000" + PASSWORD);
-        var data = this.generateStanza("auth",{'xmlns':'urn:ietf:params:xml:ns:xmpp-sasl', 'mechanism':'PLAIN'},auth);
+        var data = "<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>" + auth + "</auth>";
         sendToServer(data);
     },
     restart:function(){
-        var data = this.generateStanza("open",{"xmlns":"urn:ietf:params:xml:ns:xmpp-framing", "to":"ejabberd.local", "version":"1.0"});
+        var data = "<open xmlns='urn:ietf:params:xml:ns:xmpp-framing' to='ejabberd.local' version='1.0'/>";
         sendToServer(data);
     },
     bind:function(){
@@ -129,7 +129,8 @@ var xmppClient={
     },
     sendMessage:function(message, toJID){      
         var messageId = getMessageId();
-        var data = "<message id='" + messageId + "' from='" + JID + "/" + RESOURCE + "' to='" + toJID + "' type='chat'><body>" + message + "</body>";
+        var data = "<message id='" + messageId + "' from='" + JID + "/" + RESOURCE + "' to='" + toJID + "' type='chat'>";
+        data += "<body>" + message + "</body>";
         //data += "<active xmlns='http://jabber.org/protocol/chatstates'/>";
         //data += "<x xmlns='jabber:x:event'><offline/><delivered/><displayed/><composing/></x>";
         data += "<request xmlns='urn:xmpp:receipts'></request>";
@@ -145,7 +146,7 @@ var xmppClient={
         sendToServer(data);
     },
     generateStanza:function(elementName, elementAttributes, elementText){
-        return new XMLGenerator(elementName, elementAttributes, elementText).toString()
+        return new XMLGenerator(elementName, elementAttributes, elementText).toString();
     }
 };
 
@@ -194,10 +195,8 @@ xmppClient.stanzas = {
 
 var parser={
     parseServerResponse:function(xml){
-        //$("#logs").append($("<div />").text(xml).html());
-        //$("#logs").append("<br/><br/>");
         var rootTagName = $(xml)[0].tagName;
-        //console.log(rootTagName + ": " + xml);
+        //log(rootTagName + ": " + xml);
         xml = $.parseXML(xml);
         switch(rootTagName){
             case "STREAM:FEATURES":
@@ -238,7 +237,7 @@ var parser={
         }
     },
     parseRosterEntries:function(xml){
-        console.log("parsing roster");
+        log("parsing","parsing roster");
         var jid=null;
         var name=null;
         var subscription=null;
@@ -261,8 +260,6 @@ var parser={
         interface.rosterReceiveCallback(roster);
     },
     parseMessages:function(xml){
-        console.log("parsing messages");
-        //console.log("Message: " + xml);
         $(xml).find("message").each(function(){
             if($(xml).find("body").length>0){
                 var objMessage = {};
@@ -343,54 +340,10 @@ var interface={
     }
 };
 
-function log(data){
-    //console.log(data);
+function log(tag, data){
+    if(arguments.length==1){
+        data = tag;
+        tag = "Misc";
+    }
+    console.log(tag + ": " + data);
 }
-
-XMLGenerator = function(elementName, elementAttributes, elementText){
-    var xmlDocument = document.implementation.createDocument('jabber:client', 'xmppClient', null);    
-    var rootElement = xmlDocument.createElement(elementName);
-    
-    for(var key in elementAttributes){
-        rootElement.setAttribute(key,elementAttributes[key]);
-    }
-    
-    if(elementText !== undefined){
-        rootElement.appendChild(xmlDocument.createTextNode(elementText));
-    }
-
-    this.obj = rootElement;
-};
-
-XMLGenerator.prototype = {    
-    toString:function(){
-        var result;
-        var obj = this.obj;
-        
-        result = '<' + obj.nodeName;
-
-        for(var i=0; i<obj.attributes.length; i++){
-            result += " " + obj.attributes[i].name + "='" + obj.attributes[i].value + "'";
-        }
-
-        result += ">";
-
-        if(obj.childNodes.length>0){
-            for(var i=0; i<obj.childNodes.length; i++){
-                if(obj.childNodes[i].nodeType === xmppClient.xmlNodeType.TEXT){
-                   result += obj.childNodes[i].nodeValue; 
-                }
-            }
-        }
-
-        result += "</" + obj.nodeName + ">";
-
-        return result;
-    },
-    printObject:function(){
-        console.log(this.obj);
-        return this;
-    }
-};
-
-//console.log(new XMLGenerator("open",{"xmlns":"urn:ietf:params:xml:ns:xmpp-framing", "to":"ejabberd.local", "version":"1.0"},"hi").toString());

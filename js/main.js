@@ -3,13 +3,10 @@ var CHAT_WITH_JID=null;
 var chat=angular.module('chat',[]);
 var messages={};
 
-//xmppClient.connect({username:getParameterByName('jid'), password:'123456', host:'m101.iapplect.com'});
 xmppClient.connect({
     username:getParameterByName('jid'), 
     password:getParameterByName('pass'), 
-    //host:'ripple.meritnation.com',
     host:'ejabberd.local',
-    //host:'ejabberd.ubuntu',
     failure:function(msg){
         if(msg==="not-authorized"){
             alert("Invalid username/ password");
@@ -24,7 +21,6 @@ xmppClient.connect({
 });
 
 chat.controller('Chat',function($scope){    
-    //$scope.activeChats=[{name:'Disha',jid:'disha@ejabberd.local',isSelected:1},{name:'Raman',jid:'raman@ejabberd.local',isSelected:0}];
     $scope.activeChats=[];
     $scope.buddies=[];
     $scope.chats=[];
