@@ -7,12 +7,13 @@ xmppClient.connect({
     username:getParameterByName('jid'), 
     password:getParameterByName('pass'), 
     host:'ejabberd.local',
-    failure:function(msg){
+    http_ws_url:'ws://ejabberd.local:5280/http-ws',
+    onFailure:function(msg){
         if(msg==="not-authorized"){
             alert("Invalid username/ password");
         }
     },
-    success:function(msg){
+    onSuccess:function(msg){
         console.log(msg);
     },
     onDisconnect:function(msg){
@@ -144,8 +145,8 @@ function saveMessage(id, jid, name, message, date, status){
     $('#result').scrollTop($('#result')[0].scrollHeight);
 }
 
-interface.onMessagReceive(function(message){
 
+xmppClient.interface.onMessageReceive(function(message){
     if(!isMessageValid(message.text)){
         return;
     }
@@ -183,7 +184,7 @@ interface.onMessagReceive(function(message){
     //$("#result").append("<div class='chat-message'>" + message.from + ": " + message.text + "</div>");    
 });
 
-interface.rosterCallback(function(roster){
+xmppClient.onRosterReceive=function(roster){
     contacts=roster;
     
     for(var i in contacts){
@@ -195,9 +196,9 @@ interface.rosterCallback(function(roster){
     }
     
     showContacts();
-});
+};
 
-interface.onPresenceReceive(function(presence){
+xmppClient.onPresenceReceive=function(presence){
     var jid=presence.from.split("/")[0];
     var status="";
         
@@ -218,17 +219,17 @@ interface.onPresenceReceive(function(presence){
     }
     showContacts();
     showNotification(presence.from + " [" +presence.type + "]");
-});
+};
 
-interface.onSubscriptionRequestReceive(function(params){
+xmppClient.onSubscriptionRequestReceive=function(params){
     var data="<div style='text-align:center; background:#cdcdcd'><b>" + params.from + "</b>" + " Want's to add you as friend<br/>";
     data+="<button onclick=acceptFriendRequest('" + params.from + "')>Accept</button>";
     data+="<button onclick=rejectFriendRequest('" + params.from + "')>Reject</button>";
     data+="</div>";
     showNotification(data);
-});
+};
 
-interface.onTypingStatusChange(function(fromJid, status){
+xmppClient.onTypingStatusChange=function(fromJid, status){
     console.log(fromJid + " is " + status);
     
     if(status==="active"){
@@ -243,9 +244,9 @@ interface.onTypingStatusChange(function(fromJid, status){
     }
     
     showContacts();
-});
+};
 
-interface.onDelivered(function(deliveredToJid, msgId){
+xmppClient.onDelivered=function(deliveredToJid, msgId){
     var jid = deliveredToJid.split("/")[0];
     
     for(var i in messages[jid]){
@@ -256,7 +257,7 @@ interface.onDelivered(function(deliveredToJid, msgId){
     
     updateChats(jid);
     console.log(msgId);
-})
+};
 
 function acceptFriendRequest(jid){
     xmppClient.presence.acceptSubscriptionRequest(jid);
