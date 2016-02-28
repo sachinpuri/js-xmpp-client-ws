@@ -122,11 +122,11 @@ var xmppClient={
 
 xmppClient.roster = {
     add:function(jid, name, group){
-        var data="<iq from='" + this.fullJid + "' type='set' id='set1'><query xmlns='jabber:iq:roster'><item jid='" + jid + "' name='" + name + "'><group>" + group + "</group></item></query></iq>";
+        var data="<iq from='" + xmppClient.fullJid + "' type='set' id='set1'><query xmlns='jabber:iq:roster'><item jid='" + jid + "' name='" + name + "'><group>" + group + "</group></item></query></iq>";
         xmppClient.sendToServer(data, "roster_add",  xmppClient.presence.subscribe(jid));
     },
     get:function(){
-        var data="<iq from='" + this.fullJid + "' type='get' id='1:roster' xmlns='jabber:client'><query xmlns='jabber:iq:roster'/></iq>";
+        var data="<iq from='" + xmppClient.fullJid + "' type='get' id='1:roster' xmlns='jabber:client'><query xmlns='jabber:iq:roster'/></iq>";
         xmppClient.sendToServer(data, "roster_get");
     }
 };
