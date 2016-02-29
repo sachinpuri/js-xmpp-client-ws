@@ -64,6 +64,7 @@ chat.controller('Chat',function($scope){
         }
         
         $("#txtMessage").focus();
+        xmppClient.getArchive(jid);
     };   
 });
 

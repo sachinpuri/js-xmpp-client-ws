@@ -84,7 +84,7 @@ var xmppClient={
     getOfflineMessages:function(){
         var data = "<iq type='set' from='" + this.fullJid + "' xmlns='jabber:client' id='6:sendIQ'><query xmlns='jabber:iq:privacy'><active name='ignore'/></query></iq>";
         data+="<presence id='pres:7' xmlns='jabber:client'><priority>1</priority><c xmlns='http://jabber.org/protocol/caps' hash='sha-1' node='' ver='kR9jljQwQFoklIvoOmy/GAli0gA='/></presence>";
-        this.sendToServer(data, "getOfflineMessages");
+        this.sendToServer(data);
     },
     sendPingResponse:function(from, to, id){
         var data = "<iq from='" + from + "' to='" + to + "' id='" + id + "' type='result' xmlns='jabber:client'><ping xmlns='urn:xmpp:ping'/></iq>";
@@ -117,11 +117,24 @@ var xmppClient={
     },
     getMessageId:function(){
         return "msg_" + new Date().getTime();
+    },
+    getArchive:function(jid){
+        var data = "<iq type='set' id='" + this.getMessageId() + "'>";        
+        data += "<query xmlns='urn:xmpp:mam:1' queryid='f27'>";
+        data += "<x xmlns='jabber:x:data' type='submit'>";
+        data += "<field var='with'><value>" + jid + "</value></field>";
+        data += "</x>";
+        data += "</query>";
+        data += "</iq>";
+        this.sendToServer(data);
     }
 };
 
 xmppClient.roster = {
     add:function(jid, name, group){
+        if(jid.search("@") === -1){
+            jid = jid + "@" + xmppClient.host;
+        }
         var data="<iq from='" + xmppClient.fullJid + "' type='set' id='set1'><query xmlns='jabber:iq:roster'><item jid='" + jid + "' name='" + name + "'><group>" + group + "</group></item></query></iq>";
         xmppClient.sendToServer(data, "roster_add",  xmppClient.presence.subscribe(jid));
     },
@@ -248,8 +261,10 @@ var parser={
                     objMessage['delay']['time'] = $(this).find("delay").attr("stamp");
                 }
                 
-                if($(this).find("request").length>0 && $(this).find("request").attr("xmlns")==="urn:xmpp:receipts"){
-                    xmppClient.sendReceipt($(this).attr("id"), $(this).attr("from"));
+                if($(xml).find("result").length === 0 || $(xml).find("result").attr("xmlns") !== "urn:xmpp:mam:1"){
+                    if($(this).find("request").length>0 && $(this).find("request").attr("xmlns")==="urn:xmpp:receipts"){
+                        xmppClient.sendReceipt($(this).attr("id"), $(this).attr("from"));
+                    }
                 }
                 
                 xmppClient.onMessageReceive(objMessage);
