@@ -158,6 +158,11 @@ xmppClient.interface.onMessageReceive(function(message){
         CHAT_WITH_JID=jid;
     }
     
+    if(jid === xmppClient.username + "@" + xmppClient.host){
+        saveMessage(message.id, CHAT_WITH_JID, 'you', message.text, message.delay.time, 'delivered');
+        return; 
+    }
+    
     var $scope = angular.element(document.getElementById('wrapper')).scope();
     
     $scope.$apply(function(){

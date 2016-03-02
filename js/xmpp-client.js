@@ -248,41 +248,60 @@ var parser={
         xmppClient.onRosterReceive(roster);
     },
     parseMessages:function(xml){
-        $(xml).find("message").each(function(){
-            if($(xml).find("body").length>0){
-                var objMessage = {};
-                objMessage['id'] = $(this).attr('id');
-                objMessage['from'] = $(this).attr('from');
-                objMessage['text'] = $(this).find("body").text();
+        if($(xml).find("forwarded").length>0){
+
+            var objMessage = {};
+            objMessage['id'] = $(xml).find("forwarded > message").attr('id');
+            objMessage['from'] = $(xml).find("forwarded > message").attr('from');
+            objMessage['text'] = $(xml).find("forwarded > message > body").text();
+            objMessage['type'] = 'archive';
                 
-                if($(this).find("delay").length>0){
+            if($(xml).find("delay").length>0){
                     objMessage['delay'] = {};
-                    objMessage['delay']['text'] = $(this).find("delay").text();
-                    objMessage['delay']['time'] = $(this).find("delay").attr("stamp");
+                objMessage['delay']['text'] = $(xml).find("delay").text();
+                objMessage['delay']['time'] = $(xml).find("delay").attr("stamp");
                 }
                 
-                if($(xml).find("result").length === 0 || $(xml).find("result").attr("xmlns") !== "urn:xmpp:mam:1"){
-                    if($(this).find("request").length>0 && $(this).find("request").attr("xmlns")==="urn:xmpp:receipts"){
-                        xmppClient.sendReceipt($(this).attr("id"), $(this).attr("from"));
+            xmppClient.onMessageReceive(objMessage);
+
+        }else if($(xml).find("body").length>0){
+
+            var objMessage = {};
+            objMessage['id'] = $(xml).find("message").attr('id');
+            objMessage['from'] = $(xml).find("message").attr('from');
+            objMessage['text'] = $(xml).find("message").find("body").text();
+
+            if($(xml).find("message > delay").length>0){
+                objMessage['type'] = 'offline';
+                
+                objMessage['delay'] = {};
+                objMessage['delay']['text'] = $(xml).find("message > delay").text();
+                objMessage['delay']['time'] = $(xml).find("message > delay").attr("stamp");
+            }else{
+                objMessage['type'] = 'chat';
                     }
+
+            if($(xml).find("result").length === 0 || $(xml).find("message > result").attr("xmlns") !== "urn:xmpp:mam:1"){
+                if($(xml).find("request").length>0 && $(xml).find("message > request").attr("xmlns")==="urn:xmpp:receipts"){
+                    xmppClient.sendReceipt($(xml).find("message").attr("id"), $(xml).find("message").attr("from"));
                 }
+            }
                 
                 xmppClient.onMessageReceive(objMessage);
                 
-            }else if($(this).find("composing").length>0){
-                xmppClient.onTypingStatusChange($(this).attr('from'), "composing");
-            }else if($(this).find("paused").length>0){
-                xmppClient.onTypingStatusChange($(this).attr('from'), "paused");
-            }else if($(this).find("inactive").length>0){
-                xmppClient.onTypingStatusChange($(this).attr('from'), "inactive");
-            }else if($(this).find("gone").length>0){
-                xmppClient.onTypingStatusChange($(this).attr('from'), "gone");
-            }else if($(this).find("active").length>0 && $(this).find("body").length===0){
-                xmppClient.onTypingStatusChange($(this).attr('from'), "active");
-            }else if($(this).find("received").length>0){
-                xmppClient.onDelivered($(this).attr("from"), $(this).find("received").attr('id'));
-            }
-        });
+        }else if($(xml).find("composing").length>0){
+            xmppClient.onTypingStatusChange($(xml).find("message").attr('from'), "composing");
+        }else if($(xml).find("paused").length>0){
+            xmppClient.onTypingStatusChange($(xml).find("message").attr('from'), "paused");
+        }else if($(xml).find("inactive").length>0){
+            xmppClient.onTypingStatusChange($(xml).find("message").attr('from'), "inactive");
+        }else if($(xml).find("gone").length>0){
+            xmppClient.onTypingStatusChange($(xml).find("message").attr('from'), "gone");
+        }else if($(xml).find("active").length>0 && $(xml).find("message > body").length===0){
+            xmppClient.onTypingStatusChange($(xml).find("message").attr('from'), "active");
+        }else if($(xml).find("received").length>0){
+            xmppClient.onDelivered($(xml).find("message").attr("from"), $(xml).find("received").attr('id'));
+        }
         
     },
     parsePresence:function(xml){
