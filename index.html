@@ -1,39 +1,75 @@
 <html>
     <head>
+        <title></title>
+        <meta charset="utf-8"/>
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/angular.min.js"></script>
         <script type="text/javascript" src="js/xmpp-client.js"></script>        
         <link rel="stylesheet" href="css/style.css"/>
     </head>
     <body ng-app="chat">
+        <div id="title">JavaScript XMPP Client WebSocket</div>
         <div id="wrapper" ng-controller="Chat">
-            <div id="left-panel">
-                <div id="ActiveChat" ng-if="activeChats.length>0">
-                    <ul id="tabs">
-                        <li ng-repeat="chat in activeChats" ng-class="{true:'tab tabselected', false:'tab'}[chat.isSelected==1]" ng-click="tabOnClick(chat.jid)"><span>{{chat.name}}</span></li>
-                    </ul>
-                    <div id="result" style="border:0px solid; height:200px; background:#cdcdcd; overflow:auto">
-                        <div class='chat-message' ng-repeat="chat in chats" title="{{chat.time}}">{{chat.name}}: {{chat.message}} <span ng-if="chat.status.length>0">[{{chat.status}}]</span></div>
-                    </div>
-                    <input id="txtMessage" type="text" name="txtMessage" onkeydown="txtMessageOnKeyListener(event)"/>                         
-                </div>
-            </div>
-            <div id="right-panel">
+            <div style="width:99%; margin:0px auto; height:80%">
+                
                 <div id="buddies">
-                    <div class='buddy' ng-class="{true:'online', false: 'offline'}[buddy.status=='available']" ng-repeat="buddy in buddies" ng-click="talkTo(buddy.jid)" title="{{buddy.jid}}">{{buddy.name}} [{{buddy.subscription}}] {{buddy.state}}</div>
+                    <div id="addNewContact" class="caption">Roster <span>+ Add New</span></div>
+                    <div id="addNewContactForm">
+                        <input type="text" id="txtJid" name="txtJid" placeholder="JID" value="raman@ejabberdnode1"/>
+                        <input type="text" id="txtName" name="txtName" placeholder="Name of user" value="Raman Puri"/>
+                        <input type="text" id="txtGroup" name="txtGroup" placeholder="Group Name" value="Family"/>
+                        <input type="text" id="txtStatus" name="txtStatus" placeholder="Message" value="Hi please add me"/>
+                        <div style="padding:5px">
+                            <button id="btnAddRosterEntry" name="btnAddRosterEntry" ng-click="addRosterEntry()">Add Roster Entry</button>
+                            <button id="btnAddRosterEntryClose" name="btnAddRosterEntryClose">Close</button>
+                        </div>
+                    </div>
+                    <div class='buddy' ng-class="{true:'online', false: 'offline'}[buddy.status=='available']" ng-repeat="buddy in buddies | orderBy:'-flow'" title="{{buddy.jid}}">
+                        <span ng-click="talkTo(buddy.jid)">{{buddy.name}} [{{buddy.subscription}}] {{buddy.state}} <span class="newMessagesCount" ng-if="buddy.newMessagesCount>0">{{buddy.newMessagesCount}}</span> </span>
+                        <img class="iconDelete" src="img/delete.gif" alt="Delete" title="Delete" ng-click="removeBuddy(buddy.jid)" style="float:right"/>
+                        <img src="img/bock.gif" alt="Block" title="Block" ng-if="buddy.isBlocked == false" ng-click="blockBuddy(buddy.jid)" style="float:right"/>
+                        <img src="img/unblock.png" alt="Unblock" title="Unblock" ng-if="buddy.isBlocked == true" ng-click="unblockBuddy(buddy.jid)" style="float:right; height:16px"/>
+                        <img src="img/edit.png" id="edit" style="float:right" ng-click="editBuddy(buddy.jid)"/>
+                    </div>
+                    <div class='buddy' ng-repeat="room in rooms" title="{{room.jid}}">
+                        <span ng-click="talkToRoom(room.jid)">{{room.name}}</span>
+                        <span ng-click="joinRoom(room.jid)" style="float:right">Join</span>
+                    </div>                    
                 </div>
-                <fieldset style="width:100%; margin:5px; padding:0; border:0px; border-top:1px solid">
-                    <legend>Add Roster Entry</legend>
-                    <input type="text" id="txtJid" name="txtJid" placeholder="JID"/>
-                    <input type="text" id="txtName" name="txtName" placeholder="Name of user"/>
-                    <input type="text" id="txtGroup" name="txtGroup" placeholder="Group Name"/>
-                    <button name="btnAddRosterEntry" onclick="makeRosterEntry()">Add Roster Entry</button>
-                    <button name="btnGetRosterEntries" onclick="getRosterEntries()">Get Roster</button>
-                </fieldset>
-                <div id="notifications"></div>     
+                
+                <div id="chats">
+                    <div class="caption">{{name}}</div>                    
+                    <div id="result" onmousewheel="chatWindowOnScroll(event)" onscroll="chatWindowOnScroll(event)">                        
+                        <div class='chat-message' ng-repeat="chat in chats" title="{{chat.time}}">
+                            <span class="chatName">{{chat.name}}:</span> {{chat.message}} <span ng-if="chat.status.length>0">[{{chat.status}}]</span>
+                            <span style="float:right">{{chat.time}}</span>
+                        </div>
+                    </div>
+                    <input id="txtMessage" type="text" name="txtMessage" ng-keydown="txtMessageOnKeyListener($event)"/>                       
+                </div>
+                <div id="notifications" style="background:#cdcdcd; float:left; width:100%; padding:5px; box-sizing: border-box; margin-top:5px; height:70px; overflow: auto">
+                    <div ng-repeat="notification in notifictions">{{notification}}</div>
+                </div>
             </div>
-            <div id="notification">Some notification text</div>
+            
+            <div id="loginWrapper" style="background: #fff; text-align: center; z-index: 99999; position: fixed; margin:0px auto; width:400px; height:250px; top:50%; left:50%; margin-top:-125px; margin-left:-200px; display:none">
+                <div style="background:firebrick; color:#fff; padding:5px">Please Login</div>
+                <form action="" style="padding:10px">
+                    <label>Username: </label><input type="text" name="jid" placeholder="username"/><br/>
+                    <label>Password: </label><input type="text" name="pass" placeholder="password"/><br/>
+                    <label>Resource: </label><input type="text" name="res" placeholder="resource"/><br/><br/>
+                    <input type="submit" value="Login"/>
+                </form>
+                <div id="loginError" style="color: firebrick"></div>
+            </div>
+            <div id="bgDisabled" style="position:absolute; left:0; top:0; background:#cdcdcd; width:100%; height:100%; opacity: .5; display: none">
+
+            </div>
+            
         </div>
+        
+        
+        
         <script type="text/javascript" src="js/main.js"></script>
         
     </body>
