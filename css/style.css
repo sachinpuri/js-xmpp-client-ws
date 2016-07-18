@@ -1,24 +1,55 @@
-body{font:normal 12px arial;}
+body{font:normal 12px arial; margin:0; padding:0}
 button{border:1px solid #cdcdcd}
 
 #right-panel{width:20%; float:right}
 #left-panel{float:left; width:70%;}
 #ActiveChat{}
 
-#buddies{height:250px; overflow:auto}
-#buddies .buddy{background:#cdcdcd; padding:5px; margin-bottom: 1px}
+#buddies{height:250px; overflow:auto; border:2px solid steelblue; border-radius: 5px; width:25%; height:100%; float:left; box-sizing: border-box}
+#buddies .buddy{background:#cdcdcd; padding:5px; margin-bottom: 1px; cursor: pointer; line-height: 20px}
 #buddies .online{border-left:5px solid green}
 #buddies .offline{border-left:5px solid red}
+#buddies .newMessagesCount{line-height: 20px; background-color: firebrick; color:#fff; border-radius: 50px; text-align: center; width:20px; height:20px; display: inline-block}
+
+#chats{border:2px solid steelblue; border-radius: 5px; width:74%; float:right; height:100%; box-sizing: border-box; overflow: hidden}
+
+.caption{background:steelblue; color:#ffffff; padding:5px}
 
 #tabs{list-style:none; margin: 0; padding: 0}
 #tabs .tab{display: inline; padding: 0px; cursor: pointer; margin-right: 5px}
-#tabs .tab span{padding: 10px; display: inline-block; background: #333; color:#fff; border-radius: 5px 5px 0px 0px}
+#tabs .tab span{padding: 10px; display: inline-block; background: #333; color:#fff; border-radius: 0px 0px 5px 5px;}
 #tabs .tabselected span{background:#cdcdcd; color:#000}
 
-#txtMessage{width:100%; border:1px solid #cdcdcd}
+#txtMessage{width:100%; border:1px solid #cdcdcd; height:5%}
 
 #notification{border:1px solid #cdcdcd; width:250px; position: absolute; right:5px; bottom:5px; padding:10px; min-height: 50px; background: #fff; border-radius:5px; display: none}
+#result{border:0px solid; height:90%; background:#cdcdcd; overflow:auto}
 .chat-message{border:1px solid #eeeeee; background:#cdcdcd; padding:5px}
+.chat-message .chatName{font-weight: bold}
 
-#notifications{height:200px; border:1px solid; overflow:auto}
+#notifications{border:0px solid; overflow:auto}
 #notifications div{padding:5px}
+.iconDelete {margin-left:5px}
+
+#title {
+    background-color:firebrick; color:#fff; padding:10px; margin-bottom: 5px; font-weight:bold;
+}
+
+#btnGetArchive {
+    display: none; text-align: center; padding:5px; cursor:pointer
+}
+
+#AddNewContact span {
+    float:right; cursor:pointer;
+}
+
+#addNewContactForm {
+    width:100%; padding:0; border:0px; background-color:steelblue; color:#fff; text-align:center; display:none
+}
+
+@media screen and (max-width:1000px){
+/*    #buddies{width:100%}
+    #buddies{border:5px solid steelblue}
+    body{font-size:32px}
+    #buddies .buddy{line-height:50px;}*/
+}
